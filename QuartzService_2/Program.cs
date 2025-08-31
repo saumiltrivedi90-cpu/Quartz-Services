@@ -61,10 +61,15 @@ app.Use(async (context, next) =>
 app.MapGet("/health", async (ISchedulerFactory schedulerFactory) =>
 {
     var scheduler = await schedulerFactory.GetScheduler();
+    var triggerKey = new TriggerKey("SampleJob-2-trigger");
+    var trigger = await scheduler.GetTrigger(triggerKey) as ICronTrigger;
+
     return Results.Ok(new
     {
         SchedulerStatus = scheduler.InStandbyMode ? "Standby" : "Running",
-        Jobs = await scheduler.GetCurrentlyExecutingJobs()
+        Jobs = await scheduler.GetCurrentlyExecutingJobs(),
+        LastFireTime = trigger?.GetPreviousFireTimeUtc()?.ToLocalTime(),
+        NextFireTime = trigger?.GetNextFireTimeUtc()?.ToLocalTime()
     });
 });
 
